@@ -1,0 +1,23 @@
+{
+  "name": "workshop-inventory-operator",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "angular": "1.8.3"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}

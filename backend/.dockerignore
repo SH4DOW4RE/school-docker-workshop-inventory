@@ -1,0 +1,8 @@
+.venv/
+tests/
+
+requirements-dev.txt
+seed.py
+
+.dockerignore
+Dockerfile

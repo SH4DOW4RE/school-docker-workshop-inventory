@@ -1,0 +1,98 @@
+name: workshop-inventory
+
+services:
+  backend:
+    build: backend/.
+    image: ${BACKEND_IMAGE:-backend:latest}
+    container_name: ${BACKEND_NAME:-backend}
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8888}:8888"
+    environment:
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-name}
+      DB_USER: ${DB_USER:-user}
+      DB_PASS: ${DB_PASS:-password}
+    networks:
+      - workshop_net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8888/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      mysql:
+        condition: service_healthy
+  
+  angular:
+    build: frontend-angularjs/.
+    image: ${ANGULAR_IMAGE:-frontendjs:latest}
+    container_name: ${ANGULAR_NAME:-angular}
+    restart: unless-stopped
+    ports:
+      - "${ANGULAR_PORT:-8080}:80"
+    environment:
+      BACKEND_HOST: ${BACKEND_HOST:-backend}
+      BACKEND_PORT: ${BACKEND_PORT:-8888}
+    networks:
+      - workshop_net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      backend:
+        condition: service_healthy
+  
+  react:
+    build: frontend-react/.
+    image: ${REACT_IMAGE:-frontendts:latest}
+    container_name: ${REACT_NAME:-react}
+    restart: unless-stopped
+    ports:
+      - "${REACT_PORT:-8081}:80"
+    environment:
+      BACKEND_HOST: ${BACKEND_HOST:-backend}
+      BACKEND_PORT: ${BACKEND_PORT:-8888}
+    networks:
+      - workshop_net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      backend:
+        condition: service_healthy
+  
+  mysql:
+    image: ${MYSQL_IMAGE:-mysql:latest}
+    container_name: ${MYSQL_NAME:-db}
+    restart: unless-stopped
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: true
+      MYSQL_DATABASE: ${DB_NAME:-name}
+      MYSQL_USER: ${DB_USER:-user}
+      MYSQL_PASSWORD: ${DB_PASS:-pass}
+    volumes:
+      - workshop_data:/var/lib/mysql
+    networks:
+      - workshop_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  workshop_data:
+
+networks:
+  workshop_net:
+    driver: bridge
